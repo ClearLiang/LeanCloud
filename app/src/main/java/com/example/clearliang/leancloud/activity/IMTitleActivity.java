@@ -4,12 +4,18 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.avos.avoscloud.im.v2.AVIMClient;
+import com.avos.avoscloud.im.v2.AVIMException;
+import com.avos.avoscloud.im.v2.callback.AVIMClientCallback;
+import com.example.clearliang.leancloud.LeanCloudManager;
 import com.example.clearliang.leancloud.R;
 import com.example.clearliang.leancloud.base.BaseActivity;
 
@@ -41,9 +47,10 @@ public class IMTitleActivity extends BaseActivity {
                 String toName = textView.getText().toString();
                 Bundle bundle = getIntent().getExtras();
                 String myName = bundle.getString("myName");
-                Intent i = new Intent(IMTitleActivity.this,IMActivity.class);
+                final Intent i = new Intent(IMTitleActivity.this,IMActivity.class);
                 i.putExtra("toName",toName);
                 i.putExtra("myName",myName);
+                LeanCloudManager.getInstance().getClient(myName);
                 startActivity(i);
             }
         });
@@ -59,6 +66,11 @@ public class IMTitleActivity extends BaseActivity {
             map.put("tv_im_name", "项目："+i) ;
             list.add(map) ;
         }
+        Map<String,Object> map = new HashMap<String,Object>() ;
+        map.put("iv_im_head", R.drawable.icon_warning) ;
+        map.put("tv_im_name", "Jerry") ;
+        list.add(map) ;
+
         //2.准备SimpleAdapter对象
         // 准白
         String[] from = { "iv_im_head", "tv_im_name" };

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,6 +12,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.avos.avoscloud.im.v2.AVIMClient;
+import com.avos.avoscloud.im.v2.AVIMConversation;
+import com.avos.avoscloud.im.v2.AVIMException;
+import com.avos.avoscloud.im.v2.AVIMMessage;
+import com.avos.avoscloud.im.v2.AVIMMessageHandler;
+import com.avos.avoscloud.im.v2.AVIMMessageManager;
+import com.avos.avoscloud.im.v2.callback.AVIMClientCallback;
+import com.avos.avoscloud.im.v2.callback.AVIMConversationCallback;
+import com.avos.avoscloud.im.v2.callback.AVIMConversationCreatedCallback;
+import com.avos.avoscloud.im.v2.messages.AVIMTextMessage;
 import com.example.clearliang.leancloud.R;
 import com.example.clearliang.leancloud.adapter.MyAdapter;
 import com.example.clearliang.leancloud.base.BaseActivity;
@@ -20,6 +30,7 @@ import com.example.clearliang.leancloud.presenter.IMPresenter;
 import com.example.clearliang.leancloud.tools.MyDate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class IMActivity extends BaseActivity implements IMViewInterface {
@@ -28,12 +39,32 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
     private RecyclerView mRecyclerView;
     private TextView mTvImHead;
 
-    private List<MyMessage> mMessageList = new ArrayList<>();
-    private MyAdapter myAdapter;
+    private static List<MyMessage> mMessageList = new ArrayList<>();
+    private static MyAdapter myAdapter;
     private LinearLayoutManager mLayoutManager;
     private String myName="",toName="";
 
     IMPresenter mPresenter;
+
+    public static class CustomMessageHandler extends AVIMMessageHandler {
+        //接收到消息后的处理逻辑
+        @Override
+        public void onMessage(AVIMMessage message, AVIMConversation conversation, AVIMClient client){
+            if(message instanceof AVIMTextMessage){
+                MyMessage msg = new MyMessage();
+                msg.setContent(((AVIMTextMessage) message).getText());
+                msg.setType(MyMessage.TYPE_RECEIVE);
+                msg.setTime(MyDate.getDate());
+                mMessageList.add(msg);
+                myAdapter.notifyDataSetChanged();
+                Log.i("信息：",((AVIMTextMessage)message).getText());
+            }
+        }
+
+        public void onMessageReceipt(AVIMMessage message,AVIMConversation conversation,AVIMClient client){
+
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +75,8 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
         initEvent();
         initAdapter();
         mPresenter = new IMPresenter(this);
+        receiveMessageFromTom();
+        AVIMMessageManager.registerDefaultMessageHandler(new CustomMessageHandler());
     }
 
     private void initAdapter() {
@@ -69,13 +102,13 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
     }
 
     private void initEvent() {
-        final AVIMClient name = AVIMClient.getInstance(myName);
         mBtnIMSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String content = mEtIMInput.getText().toString();
                 //发送到服务器
-                mPresenter.sendMessage(getApplicationContext(),myName,toName,content,name);
+                sendMessageToJerryFromTom(content);
+                //mPresenter.sendMessage(getApplicationContext(),myName,toName,content);
                 //信息存储
                 testObject.put("myName",myName);//向表中添加一列，列名为myName
                 testObject.put("toName",toName);
@@ -120,7 +153,51 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
         return false;
     }
 
+    public void sendMessageToJerryFromTom(final String text) {
+        // Tom 用自己的名字作为clientId，获取AVIMClient对象实例
+        AVIMClient tom = AVIMClient.getInstance(myName);
+        // 与服务器连接
+        tom.open(new AVIMClientCallback() {
+            @Override
+            public void done(AVIMClient client, AVIMException e) {
+                if (e == null) {
+                    // 创建与Jerry之间的对话
+                    client.createConversation(Arrays.asList(toName), "", null, false, true,
+                            new AVIMConversationCreatedCallback() {
+                                @Override
+                                public void done(AVIMConversation conversation, AVIMException e) {
+                                    if (e == null) {
+                                        AVIMTextMessage msg = new AVIMTextMessage();
+                                        msg.setText(text);
+                                        // 发送消息
+                                        conversation.sendMessage(msg, new AVIMConversationCallback() {
+                                            @Override
+                                            public void done(AVIMException e) {
+                                                if (e == null) {
+                                                    Log.d("Tom & Jerry", "发送成功！");
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                }
+            }
+        });
+    }
 
-
+    public void receiveMessageFromTom(){
+        //Jerry登录
+        AVIMClient jerry = AVIMClient.getInstance("Jerry");
+        jerry.open(new AVIMClientCallback(){
+            @Override
+            public void done(AVIMClient client,AVIMException e){
+                if(e==null){
+                    //登录成功后的逻辑
+                    Log.i("信息：","Jerry登陆成功");
+                }
+            }
+        });
+    }
 
 }
