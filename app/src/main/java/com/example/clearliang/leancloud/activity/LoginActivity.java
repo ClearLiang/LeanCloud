@@ -12,6 +12,7 @@ import com.example.clearliang.leancloud.presenter.LoginPresenter;
 import com.example.clearliang.leancloud.interfaces.LoginViewInterface;
 import com.example.clearliang.leancloud.R;
 import com.example.clearliang.leancloud.base.BaseActivity;
+import com.example.clearliang.leancloud.tools.LeanCloudManager;
 import com.jakewharton.rxbinding.view.RxView;
 
 import rx.functions.Action1;
@@ -67,6 +68,7 @@ public class LoginActivity extends BaseActivity implements LoginViewInterface {
                 .subscribe(new Action1<Void>() {
                     @Override
                     public void call(Void aVoid) {
+                        LeanCloudManager.getInstance().initClient(mEtLoginUser.getText().toString());
                         Intent i = new Intent(LoginActivity.this,IMTitleActivity.class);
                         i.putExtra("myName",mEtLoginUser.getText().toString());
                         startActivity(i);

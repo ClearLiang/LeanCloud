@@ -4,7 +4,7 @@ import android.app.Application;
 
 import com.avos.avoscloud.AVOSCloud;
 import com.avos.avoscloud.im.v2.AVIMClient;
-import com.example.clearliang.leancloud.LeanCloudManager;
+import com.example.clearliang.leancloud.tools.LeanCloudManager;
 
 
 public class App extends Application {

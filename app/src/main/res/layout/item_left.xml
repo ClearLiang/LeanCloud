@@ -10,18 +10,19 @@
     android:paddingTop="5dp">
 
     <ImageView
-        android:id="@+id/iv_im_left_icon"
+        android:id="@+id/iv_im_icon"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_gravity="top" />
 
     <TextView
-        android:id="@+id/tv_im_left_message"
+        android:id="@+id/tv_im_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:background="@color/pink"
+        android:background="@color/colorAccent"
         android:padding="8dp"
-        android:text="工作多啊啊啊啊！！！" />
+        android:text="工作多啊啊啊啊！！！"
+        android:textColor="@android:color/white" />
 </LinearLayout>

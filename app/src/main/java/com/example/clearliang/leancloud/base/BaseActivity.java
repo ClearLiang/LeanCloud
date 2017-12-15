@@ -4,14 +4,12 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
-import com.avos.avoscloud.AVOSCloud;
-import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.im.v2.AVIMMessageManager;
-import com.example.clearliang.leancloud.LeanCloudManager;
+import com.example.clearliang.leancloud.activity.IMActivity;
+import com.example.clearliang.leancloud.tools.LeanCloudManager;
 
 
 public class BaseActivity extends AppCompatActivity {
-    protected static AVObject testObject = new AVObject("LeanCloud");//后台创建一个表名为testObject
+    public static final String TAG = "信息：";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

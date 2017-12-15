@@ -1,26 +1,28 @@
 package com.example.clearliang.leancloud.activity;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.im.v2.AVIMClient;
 import com.avos.avoscloud.im.v2.AVIMConversation;
 import com.avos.avoscloud.im.v2.AVIMException;
 import com.avos.avoscloud.im.v2.AVIMMessage;
 import com.avos.avoscloud.im.v2.AVIMMessageHandler;
 import com.avos.avoscloud.im.v2.AVIMMessageManager;
-import com.avos.avoscloud.im.v2.callback.AVIMClientCallback;
-import com.avos.avoscloud.im.v2.callback.AVIMConversationCallback;
 import com.avos.avoscloud.im.v2.callback.AVIMConversationCreatedCallback;
 import com.avos.avoscloud.im.v2.messages.AVIMTextMessage;
+import com.example.clearliang.leancloud.tools.LeanCloudManager;
 import com.example.clearliang.leancloud.R;
 import com.example.clearliang.leancloud.adapter.MyAdapter;
 import com.example.clearliang.leancloud.base.BaseActivity;
@@ -34,6 +36,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class IMActivity extends BaseActivity implements IMViewInterface {
+    protected static AVObject testObject;
+
     private Button mBtnIMSubmit;
     private EditText mEtIMInput;
     private RecyclerView mRecyclerView;
@@ -46,18 +50,20 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
 
     IMPresenter mPresenter;
 
-    public static class CustomMessageHandler extends AVIMMessageHandler {
+    public class CustomMessageHandler extends AVIMMessageHandler {
         //接收到消息后的处理逻辑
         @Override
         public void onMessage(AVIMMessage message, AVIMConversation conversation, AVIMClient client){
             if(message instanceof AVIMTextMessage){
-                MyMessage msg = new MyMessage();
-                msg.setContent(((AVIMTextMessage) message).getText());
-                msg.setType(MyMessage.TYPE_RECEIVE);
-                msg.setTime(MyDate.getDate());
-                mMessageList.add(msg);
-                myAdapter.notifyDataSetChanged();
-                Log.i("信息：",((AVIMTextMessage)message).getText());
+                MyMessage remsg = new MyMessage();
+                remsg.setName(toName);
+                remsg.setContent(((AVIMTextMessage) message).getText());
+                remsg.setType(MyMessage.TYPE_RECEIVE);
+                remsg.setTime(MyDate.getDate());
+                remsg.setIcon(String.valueOf(R.drawable.icon_warning));
+                mMessageList.add(remsg);
+                myAdapter.notifyItemInserted(mMessageList.size());//当有新消息时，刷新RecyclerView中的显示
+                mRecyclerView.scrollToPosition(mMessageList.size() - 1);//将RecyclerView定位到最后一行
             }
         }
 
@@ -70,13 +76,13 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_im);
+        mPresenter = new IMPresenter(this);
+        testObject = mPresenter.initSave("LeanCloud");
 
         initView();
         initEvent();
         initAdapter();
-        mPresenter = new IMPresenter(this);
-        receiveMessageFromTom();
-        AVIMMessageManager.registerDefaultMessageHandler(new CustomMessageHandler());
+
     }
 
     private void initAdapter() {
@@ -105,20 +111,14 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
         mBtnIMSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String content = mEtIMInput.getText().toString();
-                //发送到服务器
-                sendMessageToJerryFromTom(content);
-                //mPresenter.sendMessage(getApplicationContext(),myName,toName,content);
+                String text = mEtIMInput.getText().toString();
                 //信息存储
-                testObject.put("myName",myName);//向表中添加一列，列名为myName
-                testObject.put("toName",toName);
-                testObject.put("message",content);
-                testObject.saveInBackground();//在后台进行保存
+                mPresenter.saveMessage(testObject,myName,toName,text);
                 //界面显示
                 if (!isEmptyInput()) {
                     MyMessage msg = new MyMessage();
                     msg.setName(myName);
-                    msg.setContent(content);
+                    msg.setContent(text);
                     msg.setTime(MyDate.getDate());
                     msg.setType(MyMessage.TYPE_SEND);
                     msg.setIcon(String.valueOf(R.drawable.icon_warning));
@@ -126,6 +126,9 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
                     myAdapter.notifyItemInserted(mMessageList.size());//当有新消息时，刷新RecyclerView中的显示
                     mRecyclerView.scrollToPosition(mMessageList.size() - 1);//将RecyclerView定位到最后一行
                     mEtIMInput.setText("");
+
+                    //发送到服务器
+                    mPresenter.sendMessage(toName,text,false);
                 }
             }
         });
@@ -153,51 +156,23 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
         return false;
     }
 
-    public void sendMessageToJerryFromTom(final String text) {
-        // Tom 用自己的名字作为clientId，获取AVIMClient对象实例
-        AVIMClient tom = AVIMClient.getInstance(myName);
-        // 与服务器连接
-        tom.open(new AVIMClientCallback() {
-            @Override
-            public void done(AVIMClient client, AVIMException e) {
-                if (e == null) {
-                    // 创建与Jerry之间的对话
-                    client.createConversation(Arrays.asList(toName), "", null, false, true,
-                            new AVIMConversationCreatedCallback() {
-                                @Override
-                                public void done(AVIMConversation conversation, AVIMException e) {
-                                    if (e == null) {
-                                        AVIMTextMessage msg = new AVIMTextMessage();
-                                        msg.setText(text);
-                                        // 发送消息
-                                        conversation.sendMessage(msg, new AVIMConversationCallback() {
-                                            @Override
-                                            public void done(AVIMException e) {
-                                                if (e == null) {
-                                                    Log.d("Tom & Jerry", "发送成功！");
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                            });
-                }
-            }
-        });
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK ) {
+            LeanCloudManager.getInstance().close(null);
+            finish();
+        }
+        return false;
     }
 
-    public void receiveMessageFromTom(){
-        //Jerry登录
-        AVIMClient jerry = AVIMClient.getInstance("Jerry");
-        jerry.open(new AVIMClientCallback(){
-            @Override
-            public void done(AVIMClient client,AVIMException e){
-                if(e==null){
-                    //登录成功后的逻辑
-                    Log.i("信息：","Jerry登陆成功");
-                }
-            }
-        });
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AVIMMessageManager.registerDefaultMessageHandler(new CustomMessageHandler());
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
 }

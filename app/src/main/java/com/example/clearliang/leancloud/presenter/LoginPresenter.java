@@ -1,6 +1,8 @@
 package com.example.clearliang.leancloud.presenter;
 
+
 import com.example.clearliang.leancloud.interfaces.LoginViewInterface;
+import com.example.clearliang.leancloud.tools.LeanCloudManager;
 
 public class LoginPresenter {
     private LoginViewInterface mLoginViewInterface;

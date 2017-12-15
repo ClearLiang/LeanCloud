@@ -4,7 +4,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,8 +16,6 @@ import java.util.List;
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> implements View.OnClickListener{
     public List<MyMessage> dataList = null;
 
-    public MyAdapter() {
-    }
     public MyAdapter(List<MyMessage> dataList) {
         this.dataList = dataList;
     }
@@ -28,15 +25,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> implem
      * 模拟setItemOnClickListener()
      * */
     private OnItemClickListener mOnItemClickListener = null;
-
     public void setOnItemClickListener(OnItemClickListener listener){
         this.mOnItemClickListener = listener;
     }
-
     public interface OnItemClickListener{
         void onItemClick(View view, int position);
     }
-
     @Override
     public void onClick(View v) {
         if (mOnItemClickListener != null) {
@@ -65,6 +59,21 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> implem
         return null;
     }
     /**
+     * 根据消息的接收还是发送，返回不同的viewType
+     * */
+    @Override
+    public int getItemViewType(int position) {
+        switch (dataList.get(position).getType()){
+            case MyMessage.TYPE_SEND:
+                return MyMessage.TYPE_SEND;
+            case MyMessage.TYPE_RECEIVE:
+                return MyMessage.TYPE_RECEIVE;
+            default:
+                return MyMessage.TYPE_SEND;
+        }
+    }
+
+    /**
     * 将数据与界面进行绑定的操作
     * @param holder 获取的item的句柄
     * @param position item的位置
@@ -92,8 +101,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> implem
         ImageView mImageView;
         ViewHolder(View view){
             super(view);
-            mTextView = view.findViewById(R.id.tv_im_left_message);
-            mImageView = view.findViewById(R.id.iv_im_left_icon);
+            mTextView = view.findViewById(R.id.tv_im_message);
+            mImageView = view.findViewById(R.id.iv_im_icon);
         }
     }
+
+
+
 }

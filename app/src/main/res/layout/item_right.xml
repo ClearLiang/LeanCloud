@@ -11,18 +11,19 @@
 
 
     <TextView
-        android:id="@+id/tv_im_right_message"
+        android:id="@+id/tv_im_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
         android:layout_toLeftOf="@+id/iv_chat_imagr_right"
-        android:background="@color/lightblue"
+        android:background="@color/colorPrimary"
         android:padding="8dp"
-        android:text="把那些贩毒的关到小黑屋，枪毙五十次，快去" />
+        android:text="把那些贩毒的关到小黑屋，枪毙五十次，快去"
+        android:textColor="@android:color/white" />
 
     <ImageView
-        android:id="@+id/iv_im_right_icon"
+        android:id="@+id/iv_im_icon"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_alignParentRight="true"
