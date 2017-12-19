@@ -3,11 +3,12 @@ package com.example.clearliang.leancloud.presenter;
 import android.content.Context;
 
 import com.avos.avoscloud.AVObject;
+import com.example.clearliang.leancloud.base.BasePresenter;
 import com.example.clearliang.leancloud.tools.LeanCloudManager;
 import com.example.clearliang.leancloud.interfaces.IMViewInterface;
 
 
-public class IMPresenter {
+public class IMPresenter extends BasePresenter<IMViewInterface> {
     IMViewInterface mIMViewInterface;
 
     public IMPresenter(IMViewInterface IMViewInterface) {

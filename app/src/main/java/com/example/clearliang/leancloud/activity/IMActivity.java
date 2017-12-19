@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class IMActivity extends BaseActivity implements IMViewInterface {
+public class IMActivity extends BaseActivity<IMViewInterface,IMPresenter> implements IMViewInterface {
     protected static AVObject testObject;
 
     private Button mBtnIMSubmit;
@@ -169,6 +169,11 @@ public class IMActivity extends BaseActivity implements IMViewInterface {
     protected void onResume() {
         super.onResume();
         AVIMMessageManager.registerDefaultMessageHandler(new CustomMessageHandler());
+    }
+
+    @Override
+    protected IMPresenter createPresenter() {
+        return new IMPresenter(this);
     }
 
     @Override

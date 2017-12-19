@@ -10,6 +10,9 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.example.clearliang.leancloud.base.BasePresenter;
+import com.example.clearliang.leancloud.interfaces.IMTitleViewInterface;
+import com.example.clearliang.leancloud.presenter.IMTitlePresenter;
 import com.example.clearliang.leancloud.tools.LeanCloudManager;
 import com.example.clearliang.leancloud.R;
 import com.example.clearliang.leancloud.base.BaseActivity;
@@ -21,7 +24,7 @@ import java.util.Map;
 
 
 @SuppressLint("Registered")
-public class IMTitleActivity extends BaseActivity {
+public class IMTitleActivity extends BaseActivity<IMTitleViewInterface,IMTitlePresenter> implements IMTitleViewInterface {
     private ListView mListView;
 
     @Override
@@ -33,6 +36,12 @@ public class IMTitleActivity extends BaseActivity {
         initAdapter();
         initEvent();
     }
+
+    @Override
+    protected IMTitlePresenter createPresenter() {
+        return new IMTitlePresenter(this);
+    }
+
 
     private void initEvent() {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

@@ -1,36 +1,54 @@
 package com.example.clearliang.leancloud.base;
 
 
-import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.im.v2.AVIMClient;
-import com.example.clearliang.leancloud.tools.LeanCloudManager;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 
-public class BasePresenter {
-    private static AVIMClient sAVIMClient;
-    private static AVObject sAVObject;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
-    public static AVIMClient getAVIMClient() {
-        return sAVIMClient;
+public abstract class BasePresenter<T> {
+    Reference<T> mViewRef;  //防止发生内存泄露，使用弱引用
+    private CompositeSubscription mCompositeSubscription;//复合订阅
+
+    public void attachView(T view) {
+        mViewRef = new WeakReference<T>(view);
     }
 
-    public static void setAVIMClient(AVIMClient AVIMClient) {
-        sAVIMClient = AVIMClient;
+    protected T getView(){
+        return mViewRef.get();
     }
 
-    public static AVObject getAVObject() {
-        return sAVObject;
+    public boolean isViewAttached() {
+        return mViewRef != null && mViewRef.get() != null;
     }
 
-    public static void setAVObject(AVObject AVObject) {
-        sAVObject = AVObject;
+    public void datachView(){
+        if (mViewRef != null) {
+            mViewRef.clear();
+            mViewRef = null;
+        }
+        onUnsubscribe();
     }
 
-    void initClient(String myName){
-        sAVIMClient = AVIMClient.getInstance(myName);
+    //RXjava取消注册，以避免内存泄露
+    public void onUnsubscribe() {
+        if (mCompositeSubscription != null && mCompositeSubscription.hasSubscriptions()) {
+            mCompositeSubscription.unsubscribe();
+        }
     }
 
-    void initMessage(String className){
-        sAVObject = LeanCloudManager.getInstance().save(className);
+    public <T> void addSubscription(Observable<T> observable, Subscriber<T> subscriber) {
+        if (mCompositeSubscription == null) {
+            mCompositeSubscription = new CompositeSubscription();
+        }
+        mCompositeSubscription.add(observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber));
     }
 
 }

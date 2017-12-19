@@ -18,7 +18,7 @@ import com.jakewharton.rxbinding.view.RxView;
 import rx.functions.Action1;
 
 
-public class LoginActivity extends BaseActivity implements LoginViewInterface {
+public class LoginActivity extends BaseActivity<LoginViewInterface,LoginPresenter> implements LoginViewInterface {
     private Button mBtnLoginLogin,mBtnLoginRegister;
     private EditText mEtLoginUser,mEtLoginPassword;
 
@@ -31,6 +31,11 @@ public class LoginActivity extends BaseActivity implements LoginViewInterface {
         initView();
         initEvent();
         mLoginPresenter = new LoginPresenter(this);
+    }
+
+    @Override
+    protected LoginPresenter createPresenter() {
+        return new LoginPresenter(this);
     }
 
     private void initEvent() {
